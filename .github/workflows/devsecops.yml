@@ -1,4 +1,4 @@
-name: 🚀 DevSecOps CI/CD Pipeline
+name: 🚀 Frontend DevSecOps CI Pipeline
 
 on:
   push:
@@ -8,33 +8,7 @@ on:
 
 jobs:
   # ==========================================
-  # JOB 1: BACKEND CI & SECURITY (ASP.NET)
-  # ==========================================
-  backend-ci:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
-
-      - name: ⚙️ Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
-
-      - name: 📦 Restore Dependencies
-        run: dotnet restore backend/
-
-      - name: 🛡️ Security - NuGet Vulnerability Check
-        run: dotnet list backend/ package --vulnerable
-
-      - name: 🔨 Build Backend
-        run: dotnet build backend/ --configuration Release --no-restore
-
-      - name: 🧪 Run Backend Tests
-        run: dotnet test backend/ --no-build --verbosity normal
-
-  # ==========================================
-  # JOB 2: FRONTEND CI & SECURITY (Angular)
+  # JOB 1: FRONTEND CI & SECURITY (Angular)
   # ==========================================
   frontend-ci:
     runs-on: ubuntu-latest
@@ -47,26 +21,19 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: package-lock.json # Pointed directly at root
 
       - name: 📦 Install Dependencies
-        run: |
-          cd frontend
-          npm ci
+        run: npm ci
 
       - name: 🛡️ Security - npm Audit
-        # Checks node_modules/PrimeNG ecosystem for vulnerabilities
-        run: |
-          cd frontend
-          npm audit --audit-level=high
+        run: npm audit --audit-level=high
 
       - name: 🔨 Build Angular App
-        run: |
-          cd frontend
-          npx ng build --configuration production
+        run: npx ng build --configuration production
 
   # ==========================================
-  # JOB 3: ADVANCED SAST SCANNING (CodeQL)
+  # JOB 2: STATIC CODE ANALYSIS (CodeQL)
   # ==========================================
   codeql-security:
     name: 🛡️ CodeQL Static Analysis
@@ -83,16 +50,9 @@ jobs:
       - name: ⚙️ Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: "csharp, javascript-typescript"
+          languages: "javascript-typescript" # Stripped out csharp
 
-      # CodeQL requires a build step for compiled languages like C#
-      - name: ⚙️ Setup .NET for CodeQL
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
-
-      - name: 🔨 Build Backend for Analysis
-        run: dotnet build backend/
-
+      # Angular is interpreted, so CodeQL doesn't require a manual build step step here!
+      
       - name: 🔍 Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
