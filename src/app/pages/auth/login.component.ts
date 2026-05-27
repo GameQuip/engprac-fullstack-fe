@@ -53,10 +53,6 @@ import { AuthService } from '../../core/services/auth.service';
               [disabled]="loginForm.invalid"
               styleClass="w-full"
             />
-            <div class="hint">
-              Demo: <strong>alice@example.com</strong> / <strong>password123</strong> (Admin)<br/>
-              or <strong>bob@example.com</strong> / <strong>password123</strong> (User)
-            </div>
           </form>
         }
 
